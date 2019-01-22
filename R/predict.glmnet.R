@@ -29,7 +29,21 @@ predict.glmnet=function(object,newx,s=NULL,type=c("link","response","coefficient
   if(type=="nonzero")return(nonzeroCoef(nbeta[-1,,drop=FALSE],bystep=TRUE))
   ###Check on newx
  if(inherits(newx, "sparseMatrix"))newx=as(newx,"dgCMatrix")
-  nfit=as.matrix(cbind2(1,newx)%*%nbeta)
+  # nfit=as.matrix(cbind2(1,newx)%*%nbeta)
+  newx <- cbind2(1, newx)
+  MAXLEN <- 2^31 - 1
+  ncol.chunk <- floor(MAXLEN / as.double(nrow(newx)) / 4)  # depends on the memory requirements
+  numChunks <- ceiling(ncol(newx) / ncol.chunk)
+  # nfit <- NULL
+  for (jc in 1:numChunks) {
+    print(jc)
+    idx <- ((jc-1)*ncol.chunk+1):min(jc*ncol.chunk, ncol(newx))
+    if (jc == 1) {
+      nfit <- as.matrix(newx[, idx] %*% nbeta[idx, ])
+    } else {
+      nfit <- nfit + as.matrix(newx[, idx] %*% nbeta[idx, ])
+    }
+  }
    if(object$offset){
     if(missing(newoffset))stop("No newoffset provided for prediction, yet offset used in fit of glmnet",call.=FALSE)
     if(is.matrix(newoffset)&&inherits(object,"lognet")&&dim(newoffset)[[2]]==2)newoffset=newoffset[,2]
