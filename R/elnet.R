@@ -39,7 +39,7 @@ if(nulldev==0)stop("y is constant; gaussian glmnet fails at standardization step
   }
 
   fit = if(is.sparse) {
-    .C64("spelnet",
+    dotCall64::.C64("spelnet",
          SIGNATURE = c("integer", "double", "integer", "integer", "double", "integer", "integer", "double",
                        "double", "integer", "double", "double", "integer", "integer", "integer", "double",
                        "double", "double", "integer", "integer", "integer",
@@ -54,12 +54,12 @@ if(nulldev==0)stop("y is constant; gaussian glmnet fails at standardization step
          PACKAGE = "glmnetPlus"
     )
   } else {
-    .C64("elnet",
+    dotCall64::.C64("elnet",
          SIGNATURE = c("integer", "double", "integer", "integer", "double", "double",
                        "double", "integer", "double", "double", "integer", "integer", "integer", "double",
-                       "double", "double", "integer", "integer", "integer", "double",
+                       "double", "double", "integer", "integer", "integer", "double", "integer", "double",
                        "integer", "double", "double", "integer", "integer",
-                       "double", "double", "integer", "integer", "integer", "double"),
+                       "double", "double", "integer", "integer"),
          ka, parm = alpha, nobs, nvars, as.double(x), y,
          weights, jd, vp, cl, ne, nx, nlam, flmin,
          ulam, thresh, isd, intr, maxit, beta0, isg, plam,
