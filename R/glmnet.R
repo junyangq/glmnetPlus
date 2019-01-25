@@ -2,6 +2,11 @@ glmnet=function(x,y,family=c("gaussian","binomial","poisson","multinomial","cox"
                 beta0=NULL, is.glmnet.solution=FALSE, prev.lambda=NULL){
 
 ### Prepare all the generic arguments, then hand off to family functions
+
+# QJY: allow data.table to avoid copy and save memory
+  if (is.data.table(x) && family != "gaussian") {
+    x = as.matrix(x)
+  }
   family=match.arg(family)
   if(alpha>1){
     warning("alpha >1; set to 1")

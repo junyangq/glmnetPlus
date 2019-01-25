@@ -54,13 +54,14 @@ if(nulldev==0)stop("y is constant; gaussian glmnet fails at standardization step
          PACKAGE = "glmnetPlus"
     )
   } else {
+    if (is.data.table(x)) x <- as.matrix(x)
     dotCall64::.C64("elnet",
          SIGNATURE = c("integer", "double", "integer", "integer", "double", "double",
                        "double", "integer", "double", "double", "integer", "integer", "integer", "double",
                        "double", "double", "integer", "integer", "integer", "double", "integer", "double",
                        "integer", "double", "double", "integer", "integer",
                        "double", "double", "integer", "integer", "double"),
-         ka, parm = alpha, nobs, nvars, as.double(x), y,
+         ka, parm = alpha, nobs, nvars, x, y,
          weights, jd, vp, cl, ne, nx, nlam, flmin,
          ulam, thresh, isd, intr, maxit, beta0, isg, plam,
          lmu = integer(1), a0 = double(nlam), ca = double(nx*nlam), ia = integer(nx), nin = integer(nlam),
