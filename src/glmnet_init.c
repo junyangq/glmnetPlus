@@ -169,7 +169,8 @@ int *nin,
 double *rsq,
 double *alm,
 int *nlp,
-int *jerr
+int *jerr,
+double *res
 );
  
 static R_NativePrimitiveArgType elnet_t[] = {
@@ -203,7 +204,8 @@ INTSXP,
 REALSXP,
 REALSXP,
 INTSXP,
-INTSXP
+INTSXP,
+REALSXP
 };
 void F77_SUB(fishnet)(
 double *parm,

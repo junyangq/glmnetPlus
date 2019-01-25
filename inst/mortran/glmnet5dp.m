@@ -699,10 +699,10 @@ entry chg_max_exp(arg); exmx0=arg; return;
 end;
 subroutine elnet
  (ka,parm,no,ni,x,y,w,jd,vp,cl,ne,nx,nlam,flmin,ulam,thr,isd,intr,maxit,
-   beta0,isg,plam,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr);
+   beta0,isg,plam,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr,res);
 implicit double precision(a-h,o-z);
 double precision x(no,ni),y(no),w(no),vp(ni),ca(nx,nlam),cl(2,ni);
-double precision beta0(ni);
+double precision beta0(ni),res(no,nlam);
 double precision ulam(nlam),a0(nlam),rsq(nlam),alm(nlam);
 integer jd(*),ia(nx),nin(nlam);
 %fortran
@@ -719,7 +719,7 @@ if ka.eq.1 <
 else <
    call elnetn
     (parm,no,ni,x,y,w,jd,vq,cl,ne,nx,nlam,flmin,ulam,thr,isd,intr,maxit,
-      beta0,isg,plam,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr);
+      beta0,isg,plam,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr,res);
 >
 deallocate(vq);
 return;
@@ -887,10 +887,10 @@ deallocate(a,mm,c,da);
 return;
 end;
 subroutine elnetn (parm,no,ni,x,y,w,jd,vp,cl,ne,nx,nlam,flmin,ulam,thr,isd,
-   intr,maxit,beta0,isg,plam,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr);
+   intr,maxit,beta0,isg,plam,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr,res);
 implicit double precision(a-h,o-z);
 double precision vp(ni),x(no,ni),y(no),w(no),ulam(nlam),cl(2,ni);
-double precision beta0(ni);
+double precision beta0(ni),res(no,nlam);
 double precision ca(nx,nlam),a0(nlam),rsq(nlam),alm(nlam);
 integer jd(*),ia(nx),nin(nlam);
 %fortran
@@ -917,9 +917,9 @@ cl=cl/ys; if isd.gt.0 < <j=1,ni; cl(:,j)=cl(:,j)*xs(j);
    beta0(j)=beta0(j)*xs(j);> >
 if(flmin.ge.1.0) <vlam=ulam/ys; plam=plam/ys;>
 call elnet2(parm,ni,ju,vp,cl,y,no,ne,nx,x,nlam,flmin,vlam,thr,maxit,
-   beta0,isg,plam,xv,lmu,ca,ia,nin,rsq,alm,nlp,jerr);
+   beta0,isg,plam,xv,lmu,ca,ia,nin,rsq,alm,nlp,jerr,res);
 if(jerr.gt.0) return;
-<k=1,lmu; alm(k)=ys*alm(k); nk=nin(k);
+<k=1,lmu; alm(k)=ys*alm(k); nk=nin(k); res(:,k)=ys*sqrt(float(no))*res(:,k);
    <l=1,nk; ca(l,k)=ys*ca(l,k)/xs(ia(l));> a0(k)=0.0;
    if(intr.ne.0) a0(k)=ym-dot_product(ca(1:nk,k),xm(ia(1:nk)));
 >
@@ -958,11 +958,11 @@ ym=dot_product(w,y); y=v*(y-ym); ys=sqrt(dot_product(y,y)); y=y/ys;
 return;
 end;
 subroutine elnet2(beta,ni,ju,vp,cl,y,no,ne,nx,x,nlam,flmin,ulam,thr,maxit,
-    beta0,isg,plam,xv,lmu,ao,ia,kin,rsqo,almo,nlp,jerr);
+    beta0,isg,plam,xv,lmu,ao,ia,kin,rsqo,almo,nlp,jerr,res);
 implicit double precision(a-h,o-z);
 double precision vp(ni),y(no),x(no,ni),ulam(nlam),ao(nx,nlam);
 double precision rsqo(nlam),almo(nlam),xv(ni);
-double precision cl(2,ni),beta0(ni);
+double precision cl(2,ni),beta0(ni),res(no,nlam);
 integer ju(ni),ia(nx),kin(nlam);
 %fortran
       double precision, dimension (:), allocatable :: a,g
@@ -1050,6 +1050,7 @@ if flmin.ge.1.0 < <j=1,ni; if(ju(j).eq.0) next; y=y-beta0(j)*x(:,j);> >
    if nin.gt.nx < jerr=-10000-m;  exit;>
    if(nin.gt.0) ao(1:nin,m)=a(ia(1:nin)); kin(m)=nin;
    rsqo(m)=rsq; almo(m)=alm; lmu=m;
+   res(:,m)=y;
    if(m.lt.mnl) next; if(flmin.ge.1.0) next;
    me=0; <j=1,nin; if(ao(j,m).ne.0.0) me=me+1;> if(me.gt.ne) exit;
    if(rsq-rsq0.lt.sml*rsq) exit; if(rsq.gt.rsqmax) exit;
