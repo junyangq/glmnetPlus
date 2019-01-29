@@ -4,7 +4,7 @@ glmnet=function(x,y,family=c("gaussian","binomial","poisson","multinomial","cox"
 ### Prepare all the generic arguments, then hand off to family functions
 
 # QJY: allow data.table to avoid copy and save memory
-  if (is.data.table(x) && family != "gaussian") {
+  if (data.table::is.data.table(x) && family != "gaussian") {
     x = as.matrix(x)
   }
   family=match.arg(family)
