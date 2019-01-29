@@ -73,19 +73,22 @@ lognet=function(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,
                     nlp=integer(1),
                     jerr=integer(1),PACKAGE="glmnetPlus"
                     )
-  else .Fortran("lognet",
-          parm=alpha,nobs,nvars,nc,as.double(x),y,offset,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,maxit,kopt,
-          lmu=integer(1),
-          a0=double(nlam*nc),
-          ca=double(nx*nlam*nc),
-          ia=integer(nx),
-          nin=integer(nlam),
-          nulldev=double(1),
-          dev=double(nlam),
-          alm=double(nlam),
-          nlp=integer(1),
-          jerr=integer(1),PACKAGE="glmnetPlus"
-          )
+    else {
+      dotCall64::.C64("lognet",
+                      SIGNATURE = c("double", "integer", "integer", "integer", "double", "double",
+                                    "double", "integer", "double", "double", "integer", "integer", "integer", "double",
+                                    "double", "double", "integer", "integer", "integer", "integer",
+                                    "integer", "double", "double", "integer", "integer",
+                                    "double", "double", "double", "integer", "integer"),
+                      parm = alpha, nobs, nvars, nc, x, y,
+                      offset, jd, vp, cl, ne, nx, nlam, flmin,
+                      ulam, thresh, isd, intr, maxit, kopt,
+                      lmu = integer(1), a0 = double(nlam*nc), ca = double(nx*nlam*nc), ia = integer(nx), nin = integer(nlam),
+                      nulldev = double(1), dev = double(nlam), alm = double(nlam), nlp = integer(1), jerr = integer(1),
+                      INTENT = c(rep("r", 20), rep("w", 10)),
+                      PACKAGE = "glmnetPlus"
+      )
+    }
 if(fit$jerr!=0){
   errmsg=jerr(fit$jerr,maxit,pmax=nx,family)
   if(errmsg$fatal)stop(errmsg$msg,call.=FALSE)
