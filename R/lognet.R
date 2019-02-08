@@ -85,7 +85,7 @@ lognet=function(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,
                       ulam, thresh, isd, intr, maxit, kopt,
                       lmu = integer(1), a0 = double(nlam*nc), ca = double(nx*nlam*nc), ia = integer(nx), nin = integer(nlam),
                       nulldev = double(1), dev = double(nlam), alm = double(nlam), nlp = integer(1), jerr = integer(1),
-                      INTENT = c(rep("r", 20), rep("w", 10)),
+                      INTENT = c(rep("rw", 20), rep("w", 10)),
                       PACKAGE = "glmnetPlus"
       )
     }

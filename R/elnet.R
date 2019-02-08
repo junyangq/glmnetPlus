@@ -50,7 +50,7 @@ if(nulldev==0)stop("y is constant; gaussian glmnet fails at standardization step
          ulam, thresh, isd, intr, maxit,
          lmu = integer(1), a0 = double(nlam), ca = double(nx*nlam), ia = integer(nx), nin = integer(nlam),
          rsq = double(nlam), alm = double(nlam), nlp = integer(1), jerr = integer(1),
-         INTENT = c(rep("r", 21), rep("w", 9)),
+         INTENT = c(rep("rw", 21), rep("w", 9)),
          PACKAGE = "glmnetPlus"
     )
   } else {
@@ -66,7 +66,7 @@ if(nulldev==0)stop("y is constant; gaussian glmnet fails at standardization step
          ulam, thresh, isd, intr, maxit, beta0, isg, plam,
          lmu = integer(1), a0 = double(nlam), ca = double(nx*nlam), ia = integer(nx), nin = integer(nlam),
          rsq = double(nlam), alm = double(nlam), nlp = integer(1), jerr = integer(1), residuals = double(nobs*nlam),
-         INTENT = c(rep("r", 22), rep("w", 10)),
+         INTENT = c(rep("rw", 22), rep("w", 10)),
          PACKAGE = "glmnetPlus"
     )
   }
