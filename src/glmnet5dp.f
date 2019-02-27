@@ -553,7 +553,7 @@ c     mortran 2.0     (version of 7/04/75 mod 7/4/87 (ajc))
 10930 do 10931 k=1,ni                                                      1084
       if(ju(k).eq.0)goto 10931                                             1084
       a(k)=beta0(k)                                                        1085
-      if(abs(beta0(k)) .le. 1e-12)goto 10951                               1085
+      if(abs(beta0(k)) .le. 1e-24)goto 10951                               1085
       ix(k)=1                                                              1085
       nin=nin+1                                                            1085
       mm(k)=nin                                                            1085

@@ -66,7 +66,7 @@ if(nulldev==0)stop("y is constant; gaussian glmnet fails at standardization step
          ulam, thresh, isd, intr, maxit, beta0, isg, plam,
          lmu = integer(1), a0 = double(nlam), ca = double(nx*nlam), ia = integer(nx), nin = integer(nlam),
          rsq = double(nlam), alm = double(nlam), nlp = integer(1), jerr = integer(1), residuals = double(nobs*nlam),
-         INTENT = c(rep("rw", 22), rep("w", 10)),
+         INTENT = c(rep("r", 22), rep("w", 10)),
          PACKAGE = "glmnetPlus"
     )
   }
@@ -80,7 +80,7 @@ if(fit$jerr!=0){
   dev=fit$rsq[seq(fit$lmu)]
   outlist=c(outlist,list(dev.ratio=dev,nulldev=nulldev,npasses=fit$nlp,jerr=fit$jerr,offset=is.offset))
   if ("residuals" %in% names(fit)) {
-    residuals=matrix(fit$residuals, nrow=nobs)[, 1:fit$lmu]
+    residuals=matrix(fit$residuals, nrow=nobs)[, 1:fit$lmu, drop = FALSE]
     outlist[["residuals"]] <- residuals
   }
   class(outlist)="elnet"

@@ -996,7 +996,7 @@ if flmin.ge.1.0 < <j=1,ni; if(ju(j).eq.0) next; y=y-beta0(j)*x(:,j);> >
    dem=alm*omb; ab=alm*bta; rsq0=rsq; jz=1;
    if flmin.ge.1.0 .and. m.eq.1 <
       <k=1,ni; if(ju(k).eq.0) next; a(k)=beta0(k); 
-        if(abs(beta0(k)).gt.1e-12) <ix(k)=1; nin=nin+1; mm(k)=nin; ia(nin)=k;>
+        if(abs(beta0(k)).gt.1e-24) <ix(k)=1; nin=nin+1; mm(k)=nin; ia(nin)=k;>
       >
       if isg.eq.1 <tlam=bta*(2.0*alm-plam);
         <k=1,ni; if(ix(k).eq.1) next; if(ju(k).eq.0) next;
