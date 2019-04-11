@@ -3309,9 +3309,9 @@ return;
 end;
 subroutine multelnet
  (parm,no,ni,nr,x,y,w,jd,vp,cl,ne,nx,nlam,flmin,ulam,thr,isd,jsd,intr,maxit,
-   lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr);
+   beta0,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr);
 implicit double precision(a-h,o-z);
-double precision x(no,ni),y(no,nr),w(no),vp(ni),ca(nx,nr,nlam);
+double precision x(no,ni),y(no,nr),w(no),vp(ni),ca(nx,nr,nlam),beta0(ni,nr);
 double precision ulam(nlam),a0(nr,nlam),rsq(nlam),alm(nlam),cl(2,ni);
 integer jd(*),ia(nx),nin(nlam);
 %fortran
@@ -3321,15 +3321,15 @@ if maxval(vp).le.0.0 < jerr=10000; return;>
 allocate(vq(1:ni),stat=jerr); if(jerr.ne.0) return;
 vq=max(0d0,vp); vq=vq*ni/sum(vq);
 call multelnetn(parm,no,ni,nr,x,y,w,jd,vq,cl,ne,nx,nlam,flmin,ulam,thr,isd,
-   jsd,intr,maxit,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr);
+   jsd,intr,maxit,beta0,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr);
 deallocate(vq);
 return;
 end;
 subroutine multelnetn (parm,no,ni,nr,x,y,w,jd,vp,cl,ne,nx,nlam,flmin,ulam,thr,
-   isd,jsd,intr,maxit,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr);
+   isd,jsd,intr,maxit,beta0,lmu,a0,ca,ia,nin,rsq,alm,nlp,jerr);
 implicit double precision(a-h,o-z);
 double precision vp(ni),x(no,ni),y(no,nr),w(no),ulam(nlam),cl(2,ni);
-double precision ca(nx,nr,nlam),a0(nr,nlam),rsq(nlam),alm(nlam);
+double precision beta0(ni,nr),ca(nx,nr,nlam),a0(nr,nlam),rsq(nlam),alm(nlam);
 integer jd(*),ia(nx),nin(nlam);
 %fortran
       double precision, dimension (:), allocatable :: xm,xs,xv,ym,ys
@@ -3356,10 +3356,12 @@ if maxval(ju).le.0 < jerr=7777; return;>
 call multstandard1(no,ni,nr,x,y,w,isd,jsd,intr,ju,xm,xs,ym,ys,xv,ys0,jerr);
 if(jerr.ne.0) return;
 <j=1,ni; <k=1,nr; <i=1,2; clt(i,k,j)=cl(i,j);>>>
-if isd.gt.0 < <j=1,ni; <k=1,nr; <i=1,2; clt(i,k,j)=clt(i,k,j)*xs(j);>>>>
-if jsd.gt.0 < <j=1,ni; <k=1,nr; <i=1,2; clt(i,k,j)=clt(i,k,j)/ys(k);>>>>
-call multelnet2(parm,ni,nr,ju,vp,clt,y,no,ne,nx,x,nlam,flmin,ulam,thr,maxit,xv,
-   ys0,lmu,ca,ia,nin,rsq,alm,nlp,jerr);
+if isd.gt.0 < <j=1,ni; <k=1,nr; <i=1,2; clt(i,k,j)=clt(i,k,j)*xs(j);>
+                                beta0(j,k)=beta0(j,k)*xs(j);>>>
+if jsd.gt.0 < <j=1,ni; <k=1,nr; <i=1,2; clt(i,k,j)=clt(i,k,j)/ys(k);>
+                                beta0(j,k)=beta0(j,k)/ys(k);>>>
+call multelnet2(parm,ni,nr,ju,vp,clt,y,no,ne,nx,x,nlam,flmin,ulam,thr,maxit,
+   beta0,xv,ys0,lmu,ca,ia,nin,rsq,alm,nlp,jerr);
 if(jerr.gt.0) return;
 <k=1,lmu;  nk=nin(k);
    <j=1,nr;
@@ -3419,9 +3421,10 @@ if jsd.eq.0 < ys=1.0;> else < ys0=nr;>
 return;
 end;
 subroutine multelnet2(beta,ni,nr,ju,vp,cl,y,no,ne,nx,x,nlam,flmin,ulam,thri,
-   maxit,xv,ys0,lmu,ao,ia,kin,rsqo,almo,nlp,jerr);
+   maxit,beta0,xv,ys0,lmu,ao,ia,kin,rsqo,almo,nlp,jerr);
 implicit double precision(a-h,o-z);
 double precision vp(ni),y(no,nr),x(no,ni),ulam(nlam),ao(nx,nr,nlam);
+double precision beta0(ni,nr);
 double precision rsqo(nlam),almo(nlam),xv(ni),cl(2,nr,ni);
 integer ju(ni),ia(nx),kin(nlam);
 %fortran
@@ -3452,6 +3455,8 @@ alf=1.0;
 "End: added by Naras"
 if flmin.lt.1.0 < eqs=max(eps,flmin); alf=eqs**(1.0/(nlam-1));>
 rsq=ys0; a=0.0; mm=0; /nlp,nin/=0; iz=0; mnl=min(mnlam,nlam); alm=0.0;
+if flmin.ge.1.0 < <j=1,ni; if(ju(j).eq.0) next; 
+                          <k=1,nr; y(:,k)=y(:,k)-beta0(j,k)*x(:,j);>> >
 <j=1,ni; if(ju(j).eq.0) next; g(j)=0.0;
    <k=1,nr; g(j)=g(j)+dot_product(y(:,k),x(:,j))**2;>
    g(j)=sqrt(g(j));
@@ -3467,9 +3472,17 @@ rsq=ys0; a=0.0; mm=0; /nlp,nin/=0; iz=0; mnl=min(mnlam,nlam); alm=0.0;
       alm0=alm0/max(bta,1.0d-3); alm=alf*alm0;
    >
    dem=alm*omb; ab=alm*bta; rsq0=rsq; jz=1;
-   tlam=bta*(2.0*alm-alm0);
-   <k=1,ni; if(ix(k).eq.1) next; if(ju(k).eq.0) next;
-      if(g(k).gt.tlam*vp(k)) ix(k)=1;
+   if flmin.ge.1.0 .and. m.eq.1 <
+     <j=1,ni; if(ju(j).eq.0) next; inz=0; 
+       <k=1,nr; a(k,j)=beta0(j,k); if(abs(beta0(j,k)).gt.1e-24) inz=1;>
+       if(inz.gt.0) <ix(j)=1; nin=nin+1; mm(j)=nin; ia(nin)=j;>
+     >
+   >
+   else <
+     tlam=bta*(2.0*alm-alm0);
+     <k=1,ni; if(ix(k).eq.1) next; if(ju(k).eq.0) next;
+       if(g(k).gt.tlam*vp(k)) ix(k)=1;
+     >
    >
    loop < if(iz*jz.ne.0) go to :b:;
       :again:nlp=nlp+1; dlx=0.0;

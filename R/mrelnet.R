@@ -1,4 +1,4 @@
-mrelnet=function(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,jsd,intr,vnames,maxit){
+mrelnet=function(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,jsd,intr,vnames,maxit,beta0){
   maxit=as.integer(maxit)
   weights=as.double(weights)
 ### compute the null deviance
@@ -28,6 +28,10 @@ mrelnet=function(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne
 
   storage.mode(nr)="integer"
 
+  if (!is.sparse && is.null(beta0)) {
+    beta0 <- matrix(0, ncol(x), ncol(y))
+  }
+
 fit=if(is.sparse).Fortran("multspelnet",
         parm=alpha,nobs,nvars,nr,x,ix,jx,y,weights,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,jsd,intr,maxit,
         lmu=integer(1),
@@ -41,7 +45,7 @@ fit=if(is.sparse).Fortran("multspelnet",
         jerr=integer(1),PACKAGE="glmnetPlus"
         )
 else .Fortran("multelnet",
-          parm=alpha,nobs,nvars,nr,as.double(x),y,weights,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,jsd,intr,maxit,
+          parm=alpha,nobs,nvars,nr,as.double(x),y,weights,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,jsd,intr,maxit,as.double(beta0),
           lmu=integer(1),
           a0=double(nlam*nr),
           ca=double(nx*nlam*nr),
