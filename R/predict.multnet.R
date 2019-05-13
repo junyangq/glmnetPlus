@@ -54,8 +54,20 @@ predict.multnet <-
   npred = dd[[1]]
   dn = list(names(nbeta), dimnames(nbeta[[1]])[[2]], dimnames(newx)[[1]])
    dp = array(0, c(nclass, nlambda, npred), dimnames = dn)
+
+  newx <- cbind2(1, newx)
+  MAXLEN <- 2^31 - 1
+  ncol.chunk <- floor(MAXLEN / as.double(nrow(newx)) / 4)
+  numChunks <- ceiling(ncol(newx) / ncol.chunk)
   for (i in seq(nclass)) {
-    fitk = cbind2(1, newx) %*% (nbeta[[i]])
+    for (jc in 1:numChunks) {
+      idx <- ((jc-1)*ncol.chunk+1):min(jc*ncol.chunk, ncol(newx))
+      if (jc == 1) {
+        fitk <- as.matrix(newx[, idx] %*% nbeta[[i]][idx, ])
+      } else {
+        fitk <- fitk + as.matrix(newx[, idx] %*% nbeta[[i]][idx, ])
+      }
+    }
     dp[i, , ] = dp[i, , ] + t(as.matrix(fitk))
   }
   if (object$offset) {
