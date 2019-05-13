@@ -32,7 +32,7 @@ mrelnet=function(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne
     beta0 <- matrix(0, ncol(x), ncol(y))
   }
 
-fit=if(is.sparse).Fortran("multspelnet",
+fit=if(is.sparse) {.Fortran("multspelnet",
         parm=alpha,nobs,nvars,nr,x,ix,jx,y,weights,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,jsd,intr,maxit,
         lmu=integer(1),
         a0=double(nlam*nr),
@@ -44,18 +44,41 @@ fit=if(is.sparse).Fortran("multspelnet",
         nlp=integer(1),
         jerr=integer(1),PACKAGE="glmnetPlus"
         )
-else .Fortran("multelnet",
-          parm=alpha,nobs,nvars,nr,as.double(x),y,weights,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,jsd,intr,maxit,as.double(beta0),
-          lmu=integer(1),
-          a0=double(nlam*nr),
-          ca=double(nx*nlam*nr),
-          ia=integer(nx),
-          nin=integer(nlam),
-          rsq=double(nlam),
-          alm=double(nlam),
-          nlp=integer(1),
-          jerr=integer(1),PACKAGE="glmnetPlus"
-          )
+} else {
+  dotCall64::.C64("multelnet",
+       SIGNATURE = c("double", "integer", "integer", "integer", "double", "double", "double",
+                     "integer", "double", "double", "integer", "integer", "integer", "double",
+                     "double", "double", "integer", "integer", "integer", "integer", "double",
+                     "integer", "double", "double", "integer", "integer", "double", "double",
+                     "integer", "integer"),
+       parm = alpha, nobs, nvars, nr, as.double(x), y, weights, 
+       jd, vp, cl, ne, nx, nlam, flmin, 
+       ulam, thresh, isd, jsd, intr, maxit, as.double(beta0),
+       lmu = integer(1),
+       a0 = double(nlam*nr),
+       ca = double(nx*nlam*nr),
+       ia = integer(nx),
+       nin = integer(nlam),
+       rsq = double(nlam),
+       alm = double(nlam),
+       nlp = integer(1),
+       jerr = integer(1),
+       INTENT = c(rep("r", 21), rep("w", 9)),
+       PACKAGE = "glmnetPlus"
+       )
+}
+# .Fortran("multelnet",
+#           parm=alpha,nobs,nvars,nr,as.double(x),y,weights,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,jsd,intr,maxit,as.double(beta0),
+#           lmu=integer(1),
+#           a0=double(nlam*nr),
+#           ca=double(nx*nlam*nr),
+#           ia=integer(nx),
+#           nin=integer(nlam),
+#           rsq=double(nlam),
+#           alm=double(nlam),
+#           nlp=integer(1),
+#           jerr=integer(1),PACKAGE="glmnetPlus"
+#           )
 if(fit$jerr!=0){
   errmsg=jerr(fit$jerr,maxit,pmax=nx,family="mrelnet")
   if(errmsg$fatal)stop(errmsg$msg,call.=FALSE)
