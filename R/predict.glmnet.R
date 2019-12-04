@@ -49,6 +49,7 @@ predict.glmnet=function(object,newx,s=NULL,type=c("link","response","coefficient
       nfit <- nfit + newx[, idx, drop=FALSE] %*% nbeta[idx, , drop=FALSE]
     }
   }
+  nfit <- as.matrix(nfit)
   
   if(object$offset){
     if(missing(newoffset))stop("No newoffset provided for prediction, yet offset used in fit of glmnet",call.=FALSE)
