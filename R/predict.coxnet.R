@@ -25,7 +25,24 @@ predict.coxnet=function(object,newx,s=NULL,type=c("link","response","coefficient
   }
   if(type=="coefficients")return(nbeta)
   if(type=="nonzero")return(nonzeroCoef(nbeta,bystep=TRUE))
-  nfit=as.matrix(newx%*%nbeta)
+  # nfit=as.matrix(newx%*%nbeta)
+  if (data.table::is.data.table(newx)) {
+    newx <- as.matrix(newx)
+  }
+  MAXLEN <- 2^31 - 1
+  ncol.chunk <- floor(MAXLEN / as.double(nrow(newx)) / 4)  # depends on the memory requirements
+  numChunks <- ceiling(ncol(newx) / ncol.chunk)
+  for (jc in 1:numChunks) {
+    # print(jc)
+    idx <- ((jc-1)*ncol.chunk+1):min(jc*ncol.chunk, ncol(newx))
+    if (jc == 1) {
+      nfit <- newx[, idx, drop=FALSE] %*% nbeta[idx, , drop=FALSE]
+    } else {
+      nfit <- nfit + newx[, idx, drop=FALSE] %*% nbeta[idx, , drop=FALSE]
+    }
+  }
+  nfit <- as.matrix(nfit)
+  
   if(object$offset){
     if(missing(newoffset))stop("No newoffset provided for prediction, yet offset used in fit of glmnet",call.=FALSE)
     nfit=nfit+array(newoffset,dim=dim(nfit))

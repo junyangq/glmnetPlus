@@ -36,63 +36,21 @@ predict.glmnet=function(object,newx,s=NULL,type=c("link","response","coefficient
   } else {
     newx <- cbind2(1, newx)
   }
+  
   MAXLEN <- 2^31 - 1
-
-  # bufferSize <- floor(MAXLEN / as.double(nrow(newx)), bufferSize)
-  # nBuffers <- ceiling(ncol(newx) / bufferSize)
-  #
-  # res <- lapply(seq_len(nBuffers), function(whichBuffer) {
-  #   if (verbose) {
-  #     message("Buffer ", whichBuffer, " of ", nBuffers, " ...")
-  #   }
-  #   if (nTasks == 1L) {
-  #     # TODO
-  #   } else {
-  #     bufferIndex <- seq((whichBuffer-1)*bufferSize+1, whichBuffer*bufferSize)
-  #     res <- parallel::mclapply(X = seq_len(nTasks), FUN = function(whichTask, ...) {
-  #       taskIndex <- bufferIndex[cut(bufferIndex, breaks = nTasks, labels = FALSE) == whichTask]
-  #       newx[, taskIndex] %*% nbeta[taskIndex, ]
-  #       BEDMatrix::multiply_residuals(X, i, j[taskIndex], missing, residuals)
-  #       # apply2(X = subset, MARGIN = MARGIN, FUN = FUN, ...)
-  #     }, ..., mc.preschedule = FALSE, mc.cores = nCores)
-  #     simplifyList_Col(res)
-  #   }
-  # })
-  #
-  #
-
-
-  if (parallel) {
-    # TODO
-    # ncol.chunk <- floor(MAXLEN / as.double(nrow(newx)), bufferSize)
-    #
-    # res <- parallel::mclapply(X = seq_len(nTasks), FUN = function(whichTask, ...) {
-    #   taskIndex <- bufferIndex[cut(bufferIndex, breaks = nTasks, labels = FALSE) == whichTask]
-    #   if (MARGIN == 2L) {
-    #
-    #     # subset <- X[i, j[taskIndex], drop = FALSE]
-    #     # subset[is.na(subset)] <- 0
-    #   } else {
-    #     # subset <- X[i[taskIndex], j, drop = FALSE]
-    #   }
-    #   BEDMatrix::multiply_residuals(X, i, j[taskIndex], missing, residuals)
-    #   # apply2(X = subset, MARGIN = MARGIN, FUN = FUN, ...)
-    # }, ..., mc.preschedule = FALSE, mc.cores = nCores)
-
-  } else {
-    ncol.chunk <- floor(MAXLEN / as.double(nrow(newx)) / 4)  # depends on the memory requirements
-    numChunks <- ceiling(ncol(newx) / ncol.chunk)
-    # nfit <- NULL
-    for (jc in 1:numChunks) {
-      print(jc)
-      idx <- ((jc-1)*ncol.chunk+1):min(jc*ncol.chunk, ncol(newx))
-      if (jc == 1) {
-        nfit <- as.matrix(newx[, idx] %*% nbeta[idx, ])
-      } else {
-        nfit <- nfit + as.matrix(newx[, idx] %*% nbeta[idx, ])
-      }
+  ncol.chunk <- floor(MAXLEN / as.double(nrow(newx)) / 4)  # depends on the memory requirements
+  numChunks <- ceiling(ncol(newx) / ncol.chunk)
+  for (jc in 1:numChunks) {
+    # print(jc)
+    idx <- ((jc-1)*ncol.chunk+1):min(jc*ncol.chunk, ncol(newx))
+    if (jc == 1) {
+      nfit <- newx[, idx, drop=FALSE] %*% nbeta[idx, , drop=FALSE]
+    } else {
+      nfit <- nfit + newx[, idx, drop=FALSE] %*% nbeta[idx, , drop=FALSE]
     }
   }
+  nfit <- as.matrix(nfit)
+  
   if(object$offset){
     if(missing(newoffset))stop("No newoffset provided for prediction, yet offset used in fit of glmnet",call.=FALSE)
     if(is.matrix(newoffset)&&inherits(object,"lognet")&&dim(newoffset)[[2]]==2)newoffset=newoffset[,2]
