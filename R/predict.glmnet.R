@@ -44,9 +44,9 @@ predict.glmnet=function(object,newx,s=NULL,type=c("link","response","coefficient
     # print(jc)
     idx <- ((jc-1)*ncol.chunk+1):min(jc*ncol.chunk, ncol(newx))
     if (jc == 1) {
-      nfit <- as.matrix(newx[, idx, drop=F] %*% nbeta[idx, , drop=F])
+      nfit <- newx[, idx, drop=FALSE] %*% nbeta[idx, , drop=FALSE]
     } else {
-      nfit <- nfit + as.matrix(newx[, idx, drop=F] %*% nbeta[idx, , drop=F])
+      nfit <- nfit + newx[, idx, drop=FALSE] %*% nbeta[idx, , drop=FALSE]
     }
   }
   
