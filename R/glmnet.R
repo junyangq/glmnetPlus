@@ -1,6 +1,8 @@
 glmnet=function(x,y,family=c("gaussian","binomial","poisson","multinomial","cox","mgaussian"),weights,offset=NULL,alpha=1.0,nlambda=100,lambda.min.ratio=ifelse(nobs<nvars,1e-2,1e-4),lambda=NULL,standardize=TRUE,intercept=TRUE,thresh=1e-7,dfmax=nvars+1,pmax=min(dfmax*2+20,nvars),exclude,penalty.factor=rep(1,nvars),lower.limits=-Inf,upper.limits=Inf,maxit=100000,type.gaussian=ifelse(nvars<500,"covariance","naive"),type.logistic=c("Newton","modified.Newton"),standardize.response=FALSE,type.multinomial=c("ungrouped","grouped"),
-                beta0=NULL, is.glmnet.solution=FALSE, prev.lambda=NULL){
+                beta0=NULL, is.glmnet.solution=FALSE, prev.lambda=NULL, mem.save=FALSE){
 
+# mem.save  whether to save memory by passing x by reference to Fortran. If TRUE, make sure x has been copied
+#           outside of this call because it will be modified in place. Only supports the Gaussian family. 
 ### Prepare all the generic arguments, then hand off to family functions
 
 # QJY: allow data.table to avoid copy and save memory
@@ -113,7 +115,7 @@ glmnet=function(x,y,family=c("gaussian","binomial","poisson","multinomial","cox"
   kopt=as.integer(kopt)
 
   fit=switch(family,
-    "gaussian"=elnet(x,is.sparse,ix,jx,y,weights,offset,type.gaussian,alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,vnames,maxit,beta0,is.glmnet.solution,prev.lambda),
+    "gaussian"=elnet(x,is.sparse,ix,jx,y,weights,offset,type.gaussian,alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,vnames,maxit,beta0,is.glmnet.solution,prev.lambda,mem.save),
     "poisson"=fishnet(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,vnames,maxit),
     "binomial"=lognet(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,vnames,maxit,kopt,family),
     "multinomial"=lognet(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,vnames,maxit,kopt,family),

@@ -1,5 +1,5 @@
 elnet=function(x,is.sparse,ix,jx,y,weights,offset,type.gaussian=c("covariance","naive"),alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,vnames,maxit,
-               beta0,isg,plam){
+               beta0,isg,plam,mem.save){
   maxit=as.integer(maxit)
   weights=as.double(weights)
   type.gaussian=match.arg(type.gaussian)
@@ -54,21 +54,22 @@ if(nulldev==0)stop("y is constant; gaussian glmnet fails at standardization step
          PACKAGE = "glmnetPlus"
     )
   } else {
-    if (data.table::is.data.table(x)) x <- as.matrix(x)
+    is.tbl <- data.table::is.data.table(x)
+    if (is.tbl) x <- as.matrix(x)
     dotCall64::.C64("elnet",
-         SIGNATURE = c("integer", "double", "integer", "integer", "double", "double",
-                       "double", "integer", "double", "double", "integer", "integer", "integer", "double",
-                       "double", "double", "integer", "integer", "integer", "double", "integer", "double",
-                       "integer", "double", "double", "integer", "integer",
-                       "double", "double", "integer", "integer", "double"),
-         ka, parm = alpha, nobs, nvars, x, y,
-         weights, jd, vp, cl, ne, nx, nlam, flmin,
-         ulam, thresh, isd, intr, maxit, beta0, isg, plam,
-         lmu = integer(1), a0 = double(nlam), ca = double(nx*nlam), ia = integer(nx), nin = integer(nlam),
-         rsq = double(nlam), alm = double(nlam), nlp = integer(1), jerr = integer(1), residuals = double(nobs*nlam),
-         INTENT = c(rep("r", 22), rep("w", 10)),
-         PACKAGE = "glmnetPlus"
-    )
+                    SIGNATURE = c("integer", "double", "integer", "integer", "double", "double",
+                                  "double", "integer", "double", "double", "integer", "integer", "integer", "double",
+                                  "double", "double", "integer", "integer", "integer", "double", "integer", "double",
+                                  "integer", "double", "double", "integer", "integer",
+                                  "double", "double", "integer", "integer", "double"),
+                    ka, parm = alpha, nobs, nvars, x, y,
+                    weights, jd, vp, cl, ne, nx, nlam, flmin,
+                    ulam, thresh, isd, intr, maxit, beta0, isg, plam,
+                    lmu = integer(1), a0 = double(nlam), ca = double(nx*nlam), ia = integer(nx), nin = integer(nlam),
+                    rsq = double(nlam), alm = double(nlam), nlp = integer(1), jerr = integer(1), residuals = double(nobs*nlam),
+                    INTENT = c(rep("rw", 4), ifelse(is.tbl||mem.save, "r", "rw"), rep("rw", 17), rep("w", 10)),
+                    PACKAGE = "glmnetPlus"
+                    )
   }
 
 if(fit$jerr!=0){
