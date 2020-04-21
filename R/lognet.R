@@ -1,4 +1,4 @@
-lognet=function(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,vnames,maxit,kopt,family){
+lognet=function(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,nx,nlam,flmin,ulam,thresh,isd,intr,vnames,maxit,kopt,family,mem.save){
   nc=dim(y)
   maxit=as.integer(maxit)
   if(is.null(nc)){
@@ -85,7 +85,7 @@ lognet=function(x,is.sparse,ix,jx,y,weights,offset,alpha,nobs,nvars,jd,vp,cl,ne,
                       ulam, thresh, isd, intr, maxit, kopt,
                       lmu = integer(1), a0 = double(nlam*nc), ca = double(nx*nlam*nc), ia = integer(nx), nin = integer(nlam),
                       nulldev = double(1), dev = double(nlam), alm = double(nlam), nlp = integer(1), jerr = integer(1),
-                      INTENT = c(rep("r", 20), rep("w", 10)),
+                      INTENT = c(rep("rw", 4), ifelse(mem.save, "r", "rw"), rep("rw", 15), rep("w", 10)),
                       PACKAGE = "glmnetPlus"
       )
     }
